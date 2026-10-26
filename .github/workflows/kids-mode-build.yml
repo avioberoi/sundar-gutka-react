@@ -56,6 +56,12 @@ jobs:
     needs: android-build
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # On the themes-era Settings screen the emulator died with the
+    # swiftshader_indirect host renderer; compare it with two other renderers.
+    strategy:
+      fail-fast: false
+      matrix:
+        gpu: [swiftshader_indirect, swangle_indirect, guest]
     steps:
       - uses: actions/checkout@v4
 
@@ -90,13 +96,13 @@ jobs:
           ram-size: 4096M
           cores: 4
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu ${{ matrix.gpu }} -no-snapshot -noaudio -no-boot-anim
           script: bash .maestro/run-android.sh
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: android-screenshots
+          name: android-screenshots-${{ matrix.gpu }}
           path: artifacts/
           if-no-files-found: warn
 
