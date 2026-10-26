@@ -17,6 +17,7 @@ const KidsModeSetting = () => {
     <SettingsSection title={KIDS_MODE}>
       <SettingsToggleRow
         title={KIDS_MODE}
+        testID="kids-mode-toggle"
         icon="child-care"
         value={enabled}
         onValueChange={(value) => dispatch(toggleKidsMode(value))}
@@ -24,6 +25,7 @@ const KidsModeSetting = () => {
       {enabled && (
         <SettingsToggleRow
           title={KIDS_SCORING_OPT_IN}
+          testID="kids-scoring-toggle"
           subtitle={KIDS_SCORING_OPT_IN_INFO}
           icon="cloud-upload"
           value={scoringOptIn}

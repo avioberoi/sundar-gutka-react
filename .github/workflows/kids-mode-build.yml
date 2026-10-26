@@ -1,0 +1,197 @@
+name: Kids Mode build
+
+on:
+  push:
+    branches: [ci/kids-mode-build, ci/kids-mode-build-2]
+  workflow_dispatch:
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install JS dependencies
+        run: yarn install --frozen-lockfile
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Debug APK with the JS bundle embedded: with Metro unreachable, a
+      # debug build loads assets/index.android.bundle, so no packager is
+      # needed. --dev false keeps LogBox overlays off the screen.
+      # This replaces the stale committed bundle for this CI build only.
+      - name: Bundle JS into the APK
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle --platform android --dev false \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res
+          ls -la android/app/src/main/assets
+
+      # x86_64 only: the emulator below is x86_64 and the app's default ABI
+      # list is ARM only (see reactNativeArchitectures in app/build.gradle).
+      - name: Gradle assembleDebug
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon -PreactNativeArchitectures=x86_64 --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+  android-emulator:
+    needs: android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-debug-apk
+          path: apk
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install Maestro
+        run: |
+          curl -Ls https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Run Kids Mode flow on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash .maestro/run-android.sh
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-screenshots
+          path: artifacts/
+          if-no-files-found: warn
+
+  ios-build:
+    runs-on: macos-15
+    timeout-minutes: 90
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      # RN 0.78 is well exercised on Xcode 16; Xcode 26.4 clang rejects the
+      # consteval calls in fmt 11.0.2 (see KhalisFoundation PR #397).
+      - name: Select Xcode 16 if present
+        run: |
+          ls -d /Applications/Xcode*.app
+          X=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
+
+      - name: Toolchain versions
+        run: |
+          xcodebuild -version
+          ls /Applications | grep -i xcode || true
+          ruby -v
+          pod --version || true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install JS dependencies
+        run: yarn install --frozen-lockfile
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      # Gemfile.lock pins CocoaPods 1.12.1 on Ruby 2.6 while Podfile.lock was
+      # written by 1.16.2; fall back to a plain 1.16.2 if the bundle fails.
+      - name: Pod install
+        run: |
+          set -o pipefail
+          if bundle install && (cd ios && bundle exec pod install 2>&1 | tee ../pod-install.log); then
+            echo "pod install via bundler"
+          else
+            echo "bundler path failed; using cocoapods 1.16.2"
+            gem install cocoapods -v 1.16.2
+            cd ios && pod _1.16.2_ install 2>&1 | tee ../pod-install.log
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podfile-lock
+          path: ios/Podfile.lock
+
+      # Only on Xcode 26+: the PR #397 workaround, switching fmt's consteval
+      # branch off in the generated Pods header (not tracked app code).
+      - name: fmt consteval workaround (Xcode 26+ only)
+        run: |
+          MAJOR=$(xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1)
+          H=ios/Pods/fmt/include/fmt/base.h
+          grep -n "FMT_USE_CONSTEVAL" "$H" | head -20
+          if [ "$MAJOR" -ge 26 ]; then
+            sed -i '' 's/#  define FMT_USE_CONSTEVAL 1/#  define FMT_USE_CONSTEVAL 0/' "$H"
+            echo "patched for Xcode $MAJOR"; grep -n "FMT_USE_CONSTEVAL" "$H" | head -20
+          else
+            echo "Xcode $MAJOR: no fmt patch"
+          fi
+
+      - name: xcodebuild (simulator, unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild -workspace ios/SundarGutka.xcworkspace -scheme SundarGutka \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' ARCHS=arm64 \
+            -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build 2>&1 | tee xcodebuild.log | grep -E "error:|warning: .*fmt|BUILD (SUCCEEDED|FAILED)|\*\*" || true
+          tail -50 xcodebuild.log
+          grep -q "BUILD SUCCEEDED" xcodebuild.log
+
+      # Which icon fonts land in the .app, and which Info.plist registers.
+      - name: List fonts in the app bundle
+        if: always()
+        run: |
+          APP=$(find build/ios/Build/Products -maxdepth 2 -name "*.app" | head -1)
+          {
+            echo "app: $APP"
+            ls "$APP" | grep -iE "\.(ttf|otf)$" || true
+            echo "--- UIAppFonts"
+            plutil -extract UIAppFonts json -o - "$APP/Info.plist" || true
+          } | tee ios-app-fonts.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-build-logs
+          path: |
+            xcodebuild.log
+            pod-install.log
+            ios-app-fonts.txt
+          if-no-files-found: warn
