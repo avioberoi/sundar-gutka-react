@@ -44,4 +44,7 @@ cp /tmp/android-runner/*.txt /tmp/android-runner/*.log "$OUT/emulator/" 2>/dev/n
 ls -la /tmp/android-runner 2>/dev/null | tee "$OUT/emulator/android-runner-ls.txt" || true
 pgrep -a qemu | tee "$OUT/emulator/qemu-ps.txt" || echo "no qemu process" | tee "$OUT/emulator/qemu-ps.txt"
 free -m | tee "$OUT/emulator/free-m.txt" || true
+# Emulator crash reports (minidumps) live in a directory, not top-level files.
+cp -r /tmp/android-runner/emu-crash-*.db "$OUT/emulator/" 2>/dev/null || true
+find /tmp/android-runner -type f -exec ls -la {} \; | tee "$OUT/emulator/crash-files.txt" || true
 exit 0
