@@ -2,7 +2,7 @@ name: Kids Mode build
 
 on:
   push:
-    branches: [ci/kids-mode-build, ci/kids-mode-build-2]
+    branches: [ci/kids-mode-build, ci/kids-mode-build-2, ci/kids-mode-build-3]
   workflow_dispatch:
 
 jobs:
