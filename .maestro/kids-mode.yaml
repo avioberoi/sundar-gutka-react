@@ -14,12 +14,15 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 90000
     optional: true
 - takeScreenshot: 00-first-run
+- takeScreenshot: pre-tap-01
 - tapOn:
     text: "Short"
     optional: true
+- takeScreenshot: pre-tap-02
 - tapOn:
     text: "Allow"
     optional: true
+- takeScreenshot: pre-tap-03
 - tapOn:
     text: "Got it"
     optional: true
@@ -34,6 +37,7 @@ appId: com.WahegurooNetwork.SundarGutka
 
 # App settings (new design): Kids Mode is a SettingsSection whose rows are
 # SettingsToggleRow (whole row toggles). testIDs added on the CI branch only.
+- takeScreenshot: pre-tap-04
 - tapOn:
     text: "Settings"
     optional: true
@@ -48,6 +52,7 @@ appId: com.WahegurooNetwork.SundarGutka
     centerElement: true
     optional: true
 - takeScreenshot: 02a-settings-kids-off
+- takeScreenshot: pre-tap-05
 - tapOn:
     id: "kids-mode-toggle"
     optional: true
@@ -60,6 +65,7 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 15000
     centerElement: true
     optional: true
+- takeScreenshot: pre-tap-06
 - tapOn:
     id: "kids-scoring-toggle"
     optional: true
@@ -77,6 +83,7 @@ appId: com.WahegurooNetwork.SundarGutka
 - takeScreenshot: 02-settings
 
 # Reciter chooser (bottom sheet).
+- takeScreenshot: pre-tap-07
 - tapOn:
     text: "Reciter"
     optional: true
@@ -102,6 +109,7 @@ appId: com.WahegurooNetwork.SundarGutka
 - takeScreenshot: 03-home-kids-icon
 
 # Kids Mode: a fresh experience opens on the explorer chooser.
+- takeScreenshot: pre-tap-08
 - tapOn:
     text: "Kids Mode"
     optional: true
@@ -114,9 +122,11 @@ appId: com.WahegurooNetwork.SundarGutka
     optional: true
 - takeScreenshot: 04-character
 
+- takeScreenshot: pre-tap-09
 - tapOn:
     text: "Prem Singh"
     optional: true
+- takeScreenshot: pre-tap-10
 - tapOn:
     text: "Begin my journey"
     optional: true
@@ -128,6 +138,7 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 5000
 - takeScreenshot: 05-world
 
+- takeScreenshot: pre-tap-11
 - tapOn:
     text: "Explore Japji Sahib"
     optional: true
@@ -139,6 +150,7 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 5000
 - takeScreenshot: 06-map
 
+- takeScreenshot: pre-tap-12
 - tapOn:
     text: "Pauri 1,.*"
     optional: true
@@ -150,6 +162,7 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 5000
 - takeScreenshot: 07-pauri
 
+- takeScreenshot: pre-tap-13
 - tapOn:
     text: "Practice"
     optional: true
@@ -157,15 +170,18 @@ appId: com.WahegurooNetwork.SundarGutka
     visible: "Listen and repeat"
     timeout: 15000
     optional: true
+- takeScreenshot: pre-tap-14
 - tapOn:
     text: "Listen"
     optional: true
 - waitForAnimationToEnd:
     timeout: 5000
 - takeScreenshot: 08-practice
+- takeScreenshot: pre-tap-15
 - tapOn:
     text: "Pause"
     optional: true
+- takeScreenshot: pre-tap-16
 - tapOn:
     text: "Back"
     optional: true
@@ -173,6 +189,7 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 3000
 - takeScreenshot: 08b-back-to-pauri
 
+- takeScreenshot: pre-tap-17
 - tapOn:
     text: "Challenge"
     optional: true
@@ -181,15 +198,18 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 15000
     optional: true
 - takeScreenshot: 09a-ready
+- takeScreenshot: pre-tap-18
 - tapOn:
     text: "Begin challenge"
     optional: true
+- takeScreenshot: pre-tap-19
 - tapOn:
     text: "While using the app"
     optional: true
 - waitForAnimationToEnd:
     timeout: 5000
 - takeScreenshot: 09-challenge
+- takeScreenshot: pre-tap-20
 - tapOn:
     text: "Leave challenge"
     optional: true
@@ -203,6 +223,7 @@ appId: com.WahegurooNetwork.SundarGutka
     when:
       notVisible: "Journey"
     commands:
+      - takeScreenshot: pre-tap-21
       - tapOn:
           text: "Back"
           optional: true
@@ -212,11 +233,13 @@ appId: com.WahegurooNetwork.SundarGutka
     when:
       notVisible: "Journey"
     commands:
+      - takeScreenshot: pre-tap-22
       - tapOn:
           text: "Back"
           optional: true
       - waitForAnimationToEnd:
           timeout: 3000
+- takeScreenshot: pre-tap-23
 - tapOn:
     text: "Journey"
     optional: true
@@ -227,6 +250,7 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 15000
     centerElement: true
     optional: true
+- takeScreenshot: pre-tap-24
 - tapOn:
     text: "Pauri 2,.*"
     optional: true
@@ -240,12 +264,14 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 10000
     centerElement: true
     optional: true
+- takeScreenshot: pre-tap-25
 - tapOn:
     text: "Walk the story"
     optional: true
 - waitForAnimationToEnd:
     timeout: 5000
 - takeScreenshot: 14-story
+- takeScreenshot: pre-tap-26
 - tapOn:
     text: "Back"
     optional: true
@@ -258,6 +284,7 @@ appId: com.WahegurooNetwork.SundarGutka
     timeout: 10000
     centerElement: true
     optional: true
+- takeScreenshot: pre-tap-27
 - tapOn:
     text: "Practice"
     optional: true
@@ -266,6 +293,7 @@ appId: com.WahegurooNetwork.SundarGutka
 - takeScreenshot: 15-practice-pauri-2
 
 # Kids settings: reachable from the header of any non-tab screen.
+- takeScreenshot: pre-tap-28
 - tapOn:
     text: "Settings"
     optional: true
@@ -282,6 +310,7 @@ appId: com.WahegurooNetwork.SundarGutka
     optional: true
 - takeScreenshot: 10a-kids-settings
 # Two matches: the row title, then the Switch (accessibilityLabel "Night mode").
+- takeScreenshot: pre-tap-29
 - tapOn:
     text: "Night mode"
     index: 1
@@ -289,6 +318,7 @@ appId: com.WahegurooNetwork.SundarGutka
 - waitForAnimationToEnd:
     timeout: 3000
 - takeScreenshot: 10-night
+- takeScreenshot: pre-tap-30
 - tapOn:
     text: "Back"
     optional: true
